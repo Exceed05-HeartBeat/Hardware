@@ -4,31 +4,11 @@
 #include <string.h>
 int x;
 const String baseUrl = "https://ecourse.cpe.ku.ac.th/exceed05/hard/get_status";
+const String baseUrlbpm = "https://ecourse.cpe.ku.ac.th/exceed05/hard/send_bpm";
+const String baseUrlmode = "https://ecourse.cpe.ku.ac.th/exceed05/hard/change_mode";
+const String baseUrlison = "https://ecourse.cpe.ku.ac.th/exceed05/hard/on_off";
 //มี2get คือ ค่าของโหมด กับ ค่าของสีที่แสดง แดงเขียวเหลือง
 //มี3post คือ ค่าของheartbeatทุกๆ5วิ กับ ค่าของโหมดเมื่อมีการเปลี่ยน และ on/off
-int GET_mode()
-{
-  DynamicJsonDocument doc(65536);
-  HTTPClient http;
-  const String url = baseUrl;
-  http.begin(url);
-
-  int httpResponseCode = http.GET();
-  if (httpResponseCode == 200)
-  {
-    String payload = http.getString();
-    deserializeJson(doc, payload);
- 
-    Serial.println((const int)doc["result"]["current_status"]);
-    return doc["result"]["current_status"];
-  }
-  else
-  {
-    Serial.print("Error ");
-    Serial.println(httpResponseCode);
-  }
-}
-
 int GET_level()
 {
   DynamicJsonDocument doc(65536);
@@ -42,7 +22,7 @@ int GET_level()
     String payload = http.getString();
     deserializeJson(doc, payload);
 
-    return doc["result"]["color"];
+    return doc["status"];
   }
   else
   {
@@ -54,10 +34,10 @@ int GET_level()
 void POST_beat(int beat){
     String json;
     DynamicJsonDocument doc(65536);
-    doc["current_heartbeat"] = beat;
+    doc["bpm"] = beat;
     serializeJson(doc,json);
 
-    const String url = baseUrl + "posts";
+    const String url = baseUrlbpm;
     HTTPClient http;
     http.begin(url);
     http.addHeader("Content-Type","application/json");
@@ -76,10 +56,10 @@ void POST_beat(int beat){
 void POST_mode(int sta){
     String json;
     DynamicJsonDocument doc(65536);
-    doc["current_status"] = sta;
+    doc["mode"] = sta;
     serializeJson(doc,json);
 
-    const String url = baseUrl + "posts";
+    const String url = baseUrlmode;
     HTTPClient http;
     http.begin(url);
     http.addHeader("Content-Type","application/json");
@@ -101,7 +81,7 @@ void POST_onoff(int on){
     doc["is_on"] = on;
     serializeJson(doc,json);
 
-    const String url = baseUrl + "posts";
+    const String url = baseUrlison;
     HTTPClient http;
     http.begin(url);
     http.addHeader("Content-Type","application/json");
