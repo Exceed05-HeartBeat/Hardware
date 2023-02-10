@@ -11,7 +11,7 @@
 #define TWOGREEN 12
 #define samp_siz 4
 #define rise_threshold 4
-int sensorPin = 33;
+int sensorPin = 34;
 Bounce b = Bounce();
 int id;
 int ch1  = 0;
@@ -79,11 +79,11 @@ void setup(){
     pinMode(TWORED, OUTPUT);
     pinMode(TWOGREEN, OUTPUT);
     Connect_Wifi();
-    xTaskCreatePinnedToCore(post_b, "post_beat5s", 1024*10, NULL, 1, &TaskA, 0);
+    // xTaskCreatePinnedToCore(post_b, "post_beat5s", 1024*10, NULL, 1, &TaskA, 1);
     xTaskCreatePinnedToCore(HeartBeat, "HeartBeat", 1024*10, NULL, 1, &TaskB, 1);
-    xTaskCreatePinnedToCore(press_b, "5sec_LED", 1024*10, NULL, 2, &TaskC, 0);
-    xTaskCreatePinnedToCore(LED_SHOW, "LED_SHOW", 1024*10, NULL, 1, &TaskD, 0);
-    xTaskCreatePinnedToCore(mode_change, "MODE_LED", 1024*10, NULL, 1, &TaskE, 0);
+    xTaskCreatePinnedToCore(press_b, "5sec_LED", 1024*10, NULL, 2, &TaskC, 1);
+    xTaskCreatePinnedToCore(LED_SHOW, "LED_SHOW", 1024*10, NULL, 1, &TaskD, 1);
+    xTaskCreatePinnedToCore(mode_change, "MODE_LED", 1024*20, NULL, 1, &TaskE, 0);
 }
 
 void loop(){
@@ -93,6 +93,8 @@ void LED_SHOW(void *param){
   while(1){
     if(on == 1) {
       color = GET_level();
+      beat = int(print_value);
+      POST_beat(beat);
       //color = 0;
       if(color == 0){
         digitalWrite(GREENRGB, HIGH);
@@ -104,10 +106,13 @@ void LED_SHOW(void *param){
         digitalWrite(BLUERGB, LOW);
         digitalWrite(GREENRGB, LOW);
       }
-      else{
+      else if(color == 1){
         digitalWrite(BLUERGB, LOW);
         digitalWrite(GREENRGB, HIGH);
         digitalWrite(REDRGB, HIGH);
+      }
+      else{
+
       }
     } else {
         digitalWrite(BLUERGB, LOW);
@@ -123,24 +128,27 @@ void mode_change(void *param){
       if(on == 1) {
         b.update();
         if(b.fell()){
-          
+          //Serial.println("1212121212");
           if(state == 0){
             state = 1;
             digitalWrite(TWORED, HIGH);
             digitalWrite(TWOGREEN, LOW);
             POST_mode(1);
+            //Serial.println("1000000");
           }
           else{
             state = 0;
             digitalWrite(TWOGREEN, HIGH);
             digitalWrite(TWORED, LOW);
             POST_mode(0);
+            //Serial.println("19999");
           }
-        } else {
-          digitalWrite(TWOGREEN, HIGH);
-            digitalWrite(TWORED, LOW);
+          vTaskDelay(1000/portTICK_PERIOD_MS);
+        } 
+      } else {
+          digitalWrite(TWOGREEN, LOW);
+          digitalWrite(TWORED, LOW);
         }
-      }
       vTaskDelay(100/portTICK_PERIOD_MS);
     }
 }
@@ -162,7 +170,7 @@ void press_b(void *param) {
         ch1 = 0;
       }
     }
-    vTaskDelay(2000/portTICK_PERIOD_MS);
+    vTaskDelay(1000/portTICK_PERIOD_MS);
   }
 }
 
@@ -181,7 +189,6 @@ void post_b(void *param){
 void HeartBeat(void *param){
     while(1){
       if(on == 1) {
-          Serial.println(analogRead(sensorPin));
           // calculate an average of the   sensor
           // during a 20 ms period (this will eliminate
           // the 50   Hz noise caused by electric light
@@ -223,10 +230,13 @@ void HeartBeat(void *param){
               // Calculate the weighed average of heartbeat rate
               // according   to the three last beats
               print_value = 60000. / (0.4 * first + 0.3 *   second + 0.3 * third);
+
+              print_value -= 20;
               if(print_value < 200) {
                 Serial.print(print_value);
                 Serial.println("");
               }
+
               
               third = second;
               second   = first;
