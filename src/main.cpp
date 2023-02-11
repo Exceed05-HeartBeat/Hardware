@@ -39,8 +39,6 @@ TaskHandle_t TaskE = NULL;
 
 void press_b(void *param);
 
-void post_b(void *param);
-
 void HeartBeat(void *param);
 
 void LED_SHOW(void *param);
