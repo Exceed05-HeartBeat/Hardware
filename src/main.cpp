@@ -19,7 +19,7 @@ int cnt = 0;
 int res = 1000;
 int timer = 0;
 int beat;
-int on = 1;
+int on = 0;
 int state = 0;
 int color;
 float print_value;
@@ -79,7 +79,6 @@ void setup(){
     pinMode(TWORED, OUTPUT);
     pinMode(TWOGREEN, OUTPUT);
     Connect_Wifi();
-    // xTaskCreatePinnedToCore(post_b, "post_beat5s", 1024*10, NULL, 1, &TaskA, 1);
     xTaskCreatePinnedToCore(HeartBeat, "HeartBeat", 1024*10, NULL, 1, &TaskB, 1);
     xTaskCreatePinnedToCore(press_b, "5sec_LED", 1024*10, NULL, 2, &TaskC, 1);
     xTaskCreatePinnedToCore(LED_SHOW, "LED_SHOW", 1024*10, NULL, 1, &TaskD, 1);
@@ -93,7 +92,6 @@ void LED_SHOW(void *param){
   while(1){
     if(on == 1) {
       color = GET_level();
-      beat = int(print_value);
       POST_beat(beat);
       //color = 0;
       if(color == 0){
@@ -174,18 +172,6 @@ void press_b(void *param) {
   }
 }
 
-void post_b(void *param){
-    while(1){
-      if(on == 1) {
-        beat = int(print_value);
-        POST_beat(beat);
-        vTaskDelay(1000/portTICK_PERIOD_MS); // 1sec
-        continue;
-      }
-      vTaskDelay(100/portTICK_PERIOD_MS);
-    }
-}
-
 void HeartBeat(void *param){
     while(1){
       if(on == 1) {
@@ -230,9 +216,10 @@ void HeartBeat(void *param){
               // Calculate the weighed average of heartbeat rate
               // according   to the three last beats
               print_value = 60000. / (0.4 * first + 0.3 *   second + 0.3 * third);
-
-              print_value -= 20;
-              if(print_value < 200) {
+              if(print_value < 200 && print_value > 20) {
+                beat = int(print_value);
+              }
+              if(print_value < 200 && print_value > 20) {
                 Serial.print(print_value);
                 Serial.println("");
               }
@@ -256,6 +243,6 @@ void HeartBeat(void *param){
           ptr   %= samp_siz;
           
       }
-      vTaskDelay(2/portTICK_PERIOD_MS);
+      vTaskDelay(3/portTICK_PERIOD_MS);
     }
 }
