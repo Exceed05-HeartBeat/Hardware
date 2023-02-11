@@ -11,7 +11,7 @@ const String baseUrlison = "https://ecourse.cpe.ku.ac.th/exceed05/hard/on_off";
 //มี3post คือ ค่าของheartbeatทุกๆ5วิ กับ ค่าของโหมดเมื่อมีการเปลี่ยน และ on/off
 int GET_level()
 {
-  DynamicJsonDocument doc(65536);
+  DynamicJsonDocument doc(1024);
   HTTPClient http;
   const String url = baseUrl;
   http.begin(url);
@@ -28,12 +28,13 @@ int GET_level()
   {
     Serial.print("Error ");
     Serial.println(httpResponseCode);
+    return -1;
   }
 }
 
 void POST_beat(int beat){
     String json;
-    DynamicJsonDocument doc(65536);
+    DynamicJsonDocument doc(1024);
     doc["bpm"] = beat;
     serializeJson(doc,json);
 
@@ -55,29 +56,30 @@ void POST_beat(int beat){
 
 void POST_mode(int sta){
     String json;
-    DynamicJsonDocument doc(65536);
+    DynamicJsonDocument doc(1024);
     doc["mode"] = sta;
     serializeJson(doc,json);
-
+    
     const String url = baseUrlmode;
     HTTPClient http;
     http.begin(url);
     http.addHeader("Content-Type","application/json");
 
     int httpResponseCode = http.POST(json);
+    
     if (httpResponseCode >= 200 && httpResponseCode < 300) {
         Serial.print("HTTP ");
         Serial.println(httpResponseCode);
     }
     else {
-        Serial.print("Error code: ");
+        Serial.print("Error code mode: ");
         Serial.println(httpResponseCode);
     }
 }
 
 void POST_onoff(int on){
     String json;
-    DynamicJsonDocument doc(65536);
+    DynamicJsonDocument doc(1024);
     doc["is_on"] = on;
     serializeJson(doc,json);
 
